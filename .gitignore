@@ -1,12 +1,26 @@
-﻿.*/
-# Ignore Python cache files
+﻿# .gitignore
+
+# IDE and OS files
+.vscode/
+.idea/
+
+# Python virtual environment
+.churn311/
+venv/
+.venv/
+
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
 
-# Ignore any plot files that might be accidentally created in root
-*.png
-confusion_matrix_*.png
-feature_importance_*.png
+# Test cache
+.pytest_cache/
 
-# MLflow artifacts (already in .*)
+# MLflow artifacts
 mlruns/
+
+# Local environment variables
+.env
+
+# Locally generated plots
+*.png
