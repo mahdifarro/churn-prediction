@@ -1,0 +1,24 @@
+# .dockerignore
+
+# Python virtual environment
+venv/
+.venv/
+.churn311/
+
+# MLflow data and artifacts
+mlruns/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Test cache
+.pytest_cache/
+
+# Local environment variables (should not be in the image)
+.env

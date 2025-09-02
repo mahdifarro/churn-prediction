@@ -1,0 +1,12 @@
+﻿.*/
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore any plot files that might be accidentally created in root
+*.png
+confusion_matrix_*.png
+feature_importance_*.png
+
+# MLflow artifacts (already in .*)
+mlruns/
