@@ -4,6 +4,7 @@
 # of the data we expect to receive in an API request.
 from pydantic import BaseModel, Field
 
+
 class CustomerData(BaseModel):
     """
     Defines the data schema for a single customer prediction request.
@@ -11,6 +12,7 @@ class CustomerData(BaseModel):
     Pydantic will automatically validate that the incoming data matches these types.
     For example, it will ensure 'tenure' is an integer and 'gender' is a string.
     """
+
     gender: str
     Partner: str
     Dependents: str
@@ -52,7 +54,7 @@ class CustomerData(BaseModel):
                 "PaymentMethod": "Electronic check",
                 "tenure": 1,
                 "MonthlyCharges": 29.85,
-                "TotalCharges": 29.85
+                "TotalCharges": 29.85,
             }
         }
 
@@ -62,13 +64,19 @@ class CustomerData(BaseModel):
 class PredictionResponse(BaseModel):
     model_version: str
     prediction: str
-    probability: float = Field(..., ge=0, le=1) # Ensures probability is between 0 and 1
+    probability: float = Field(
+        ..., ge=0, le=1
+    )  # Ensures probability is between 0 and 1
+
 
 class BatchPredictionRequest(BaseModel):
     """Schema for batch prediction requests."""
+
     customers: list[CustomerData]
+
 
 class BatchPredictionResponse(BaseModel):
     """Schema for batch prediction responses."""
+
     model_version: str
     predictions: list[dict]  # List of {prediction, probability} for each customer

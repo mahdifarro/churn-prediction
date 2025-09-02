@@ -1,0 +1,49 @@
+# .github/workflows/ci.yml
+
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Register dummy model in MLflow
+        run: python scripts/register_dummy_model.py
+
+      - name: Lint and format with pre-commit
+        run: pre-commit run --all-files
+
+      - name: Run tests with pytest
+        # We need to set env vars for the tests to run in CI
+        # We also create a dummy MLflow run so the tests don't fail on a fresh checkout
+        run: |
+          export MLFLOW_TRACKING_URI=./mlruns
+          export MODEL_NAME="churn-prediction-champion"
+          export MODEL_STAGE="Staging"
+          python -c "import mlflow; mlflow.set_tracking_uri('./mlruns'); mlflow.start_run()"
+          pytest
+
+      - name: Build Docker image
+        run: |
+          docker build . --file ./docker/Dockerfile --tag churn-api:test
