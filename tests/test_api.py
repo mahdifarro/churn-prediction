@@ -2,14 +2,9 @@
 
 import os
 from fastapi.testclient import TestClient
-
-# The 'app' import must come AFTER setting the environment variable
 from api.main import app
 
-# Set an environment variable to use a local test database for MLflow
-# This prevents tests from interfering with your actual MLflow data.
-os.environ["MLFLOW_TRACKING_URI"] = "./mlruns_test"
-
+os.environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"  # or your test server
 
 # Create a TestClient instance, which allows us to send requests to our FastAPI app
 client = TestClient(app)
@@ -41,7 +36,10 @@ def test_health_check():
     """Tests the /health endpoint to ensure the API is running."""
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    # Accept both keys: 'status' and 'model_loaded' in the response
+    data = response.json()
+    assert data["status"] == "ok"
+    assert "model_loaded" in data
 
 
 def test_version_check():
