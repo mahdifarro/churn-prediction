@@ -1,0 +1,53 @@
+# docker-compose.yml
+
+services:
+  # The training service will run our train.py script
+  training:
+    # It uses the same image as our API
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: churn_training
+    # It also needs the tracking URI to find the mlflow server
+    env_file:
+      - .env
+    volumes:
+      # We mount the src folder to ensure it uses the latest code
+      - ./src:/app/src
+      # It shares the mlruns volume to save its results
+      - ./mlruns:/mlruns
+    depends_on:
+      - mlflow
+    # The command to run inside the container is our training script
+    command: python -m src.train
+
+  # The API service (no changes needed)
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: churn_api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mlruns:/mlruns
+    depends_on:
+      mlflow:
+        condition: service_healthy
+
+  # The MLflow service (no changes needed)
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.0
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+    command: mlflow server --host 0.0.0.0 --backend-store-uri /mlruns --default-artifact-root /mlruns
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      retries: 15
+      timeout: 10s
