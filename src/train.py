@@ -53,6 +53,9 @@ def ensure_plots_directory():
 
 def plot_confusion_matrix(y_true, y_pred, run_id, plots_session_dir):
     """Plot confusion matrix and save to plots directory."""
+    # Ensure the directory exists before saving
+    os.makedirs(plots_session_dir, exist_ok=True)
+
     cm = confusion_matrix(y_true, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
     disp.plot(cmap=plt.cm.Blues)
@@ -67,6 +70,9 @@ def plot_confusion_matrix(y_true, y_pred, run_id, plots_session_dir):
 def plot_feature_importance(pipeline, run_id, plots_session_dir):
     """Plot feature importance and save to plots directory."""
     try:
+        # Ensure the directory exists before saving
+        os.makedirs(plots_session_dir, exist_ok=True)
+
         feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
         # This code works for both LightGBM and XGBoost as they share the .feature_importances_ attribute
         model = pipeline.named_steps["classifier"]

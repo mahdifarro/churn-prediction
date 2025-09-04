@@ -1,8 +1,7 @@
 # .github/workflows/ci.yml
 
-name: CI/CD Pipeline
+name: CI Pipeline
 
-# This workflow runs on every push and pull request.
 on: [push, pull_request]
 
 jobs:
@@ -23,43 +22,19 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Lint with pre-commit
+        run: pre-commit run --all-files
+
       - name: Run tests with pytest
-        # This step sets the environment variables that the tests need to find the dummy model.
         run: |
-          export MLFLOW_TRACKING_URI=./mlruns
-          export MODEL_NAME="churn-prediction-champion"
+          export MODEL_NAME="house-price-regressor"
           export MODEL_STAGE="Staging"
           python scripts/register_dummy_model.py
           pytest
 
-      # --- NEW CD STEPS START HERE ---
-
-      - name: Log in to GitHub Container Registry
-        # This 'if' statement ensures this step only runs on pushes to the 'main' branch.
-        # It will be skipped for pull requests and pushes to other branches.
-        if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GH_PAT }}
-
-      - name: Build and Push Docker Image
-        # This step also only runs on pushes to the 'main' branch.
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          dockerfile: ./docker/Dockerfile
-          # The 'push' flag tells the action to push the image after building.
-          push: true
-          # We tag the image twice: once with 'latest' and once with the unique commit hash for traceability.
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+      - name: Build Docker image
+        run: docker build . --file ./docker/Dockerfile --tag house-price-api:test
