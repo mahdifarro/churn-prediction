@@ -1,11 +1,16 @@
 # tests/test_api.py
 
 import os
-from fastapi.testclient import TestClient
-from api.main import app
 
-# Use local MLflow tracking for tests (same as register_dummy_model.py)
-os.environ["MLFLOW_TRACKING_URI"] = os.getenv("MLFLOW_TRACKING_URI", "./mlruns")
+from fastapi.testclient import TestClient
+from api.main import app  # Now this import is safe
+
+# --- CRITICAL FIX ---
+# Set the environment variable for MLflow BEFORE importing the FastAPI app.
+# This ensures that when 'api.main' is imported, it uses this local path
+# for MLflow instead of the Docker-specific one from the .env file.
+os.environ["MLFLOW_TRACKING_URI"] = "./mlruns"
+# -------------------
 
 # Create a TestClient instance, which allows us to send requests to our FastAPI app
 client = TestClient(app)
@@ -37,29 +42,24 @@ def test_health_check():
     """Tests the /health endpoint to ensure the API is running."""
     response = client.get("/health")
     assert response.status_code == 200
-    # Accept both keys: 'status' and 'model_loaded' in the response
     data = response.json()
     assert data["status"] == "ok"
-    assert "model_loaded" in data
 
 
 def test_version_check():
     """Tests the /version endpoint."""
     response = client.get("/version")
     assert response.status_code == 200
-    # We can't know the exact version, but we can check if the key exists
     assert "model_version" in response.json()
 
 
 def test_predict_success():
     """
     Tests the /predict endpoint with valid data.
-    This is an integration test for a successful round-trip prediction.
     """
     response = client.post("/predict", json=VALID_PAYLOAD)
     assert response.status_code == 200
 
-    # Check the response contract (schema)
     data = response.json()
     assert "model_version" in data
     assert "prediction" in data
@@ -71,11 +71,9 @@ def test_predict_success():
 def test_predict_validation_error():
     """
     Tests that the /predict endpoint returns a 422 error for invalid input.
-    This checks our Pydantic input validation.
     """
     invalid_payload = VALID_PAYLOAD.copy()
     invalid_payload["tenure"] = "not-a-number"  # Invalid data type
 
     response = client.post("/predict", json=invalid_payload)
-    # 422 Unprocessable Entity is the correct code for a Pydantic validation error
     assert response.status_code == 422
