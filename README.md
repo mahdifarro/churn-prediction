@@ -1,3 +1,4 @@
+[![CI Pipeline](https://github.com/mahdifarro/churn-prediction/actions/workflows/ci.yaml/badge.svg)](https://github.com/mahdifarro/churn-prediction/actions/workflows/ci.yaml)
 ## 📊 Dataset: Telco Customer Churn
 
 ### Overview
