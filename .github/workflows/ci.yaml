@@ -31,10 +31,11 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          export MODEL_NAME="house-price-regressor"
+          export MODEL_NAME="churn-prediction-champion"
           export MODEL_STAGE="Staging"
+          export MLFLOW_TRACKING_URI="./mlruns"
           python scripts/register_dummy_model.py
           pytest
 
       - name: Build Docker image
-        run: docker build . --file ./docker/Dockerfile --tag house-price-api:test
+        run: docker build . --file ./docker/Dockerfile --tag churn-prediction-api:test

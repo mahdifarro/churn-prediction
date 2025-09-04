@@ -4,7 +4,8 @@ import os
 from fastapi.testclient import TestClient
 from api.main import app
 
-os.environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"  # or your test server
+# Use local MLflow tracking for tests (same as register_dummy_model.py)
+os.environ["MLFLOW_TRACKING_URI"] = os.getenv("MLFLOW_TRACKING_URI", "./mlruns")
 
 # Create a TestClient instance, which allows us to send requests to our FastAPI app
 client = TestClient(app)
